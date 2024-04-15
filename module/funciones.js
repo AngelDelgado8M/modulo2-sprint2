@@ -4,7 +4,7 @@ export let creartarjetas = function (peli, elemento) {
     for (const iteradorpelis of peli) {
         movie += creartarjeta(iteradorpelis)
     }
-    elemento.innerHTML = movie
+    elemento.innerHTML += movie
 }
 
 export let creartarjeta = function ( pelicu ) {
@@ -16,6 +16,9 @@ export let creartarjeta = function ( pelicu ) {
         <a class="hover:text-white" href="./details.html?id=${pelicu.id}">Ver mas</a>
         <button data-movies="${pelicu.id}" value="${pelicu.id}">
         <i class="fa-regular fa-heart" data-movies="${pelicu.id}"></i>
+        </button>
+        <button data-movies="${pelicu.id}" value="${pelicu.id}">
+        <i class="fa-solid fa-heart" data-movies="${pelicu.id}"></i>
         </button>
     </div>`
 }
