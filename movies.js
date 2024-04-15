@@ -1,73 +1,101 @@
-let content = document.getElementById ("main")
-content.innerHTML += "<div id='contenedor' class='flex justify-center flex-wrap gap-3'> </div>"
-let div = document.getElementById ("contenedor")
+import {creartarjetas , filtrarPorNombre , filtrarPorGenero , crearOptions} from "./module/funciones.js"
+
+
+let contenedormain = document.getElementById ("main")
+contenedormain.innerHTML += "<div id='div' class='flex justify-center flex-wrap gap-3'> </div>"
+let contenedorDiv = document.getElementById ("div")
 let contenedor = document.getElementById("gene")
-
-let creartarjeta = function ( peliculas ) {
-    return`
-    <div class=" bg-slate-700 w-60 h-68 w-1/5 p-3 flex flex-col border-solid border-2 m-2 border-gray-400 rounded-lg items-center max-md:w-4/5 ">
-        <img class=" w-full h-28 rounded" src=${peliculas.image} />
-        <h3 class="text-lg text-neutral-50 ">${peliculas.title }</h3>
-        <p class="text-xs line-clamp-4">${peliculas.overview}</p>
-        <a class="hover:text-white" href="./details.html?id=${peliculas.id}">Ver mas</a>
-    </div>`
-}
-
-let creartarjetas = function (peli, elemento) {
-    let movies = ""
-    for (const iteradorpelis of peli) {
-        movies += creartarjeta(iteradorpelis)
-    }
-    elemento.innerHTML = movies
-}
-
-creartarjetas(peliculas, div)
-
-
-//filtros
-
 let inputBuscador = document.getElementById('buscador')
 
 
-inputBuscador.addEventListener( "input" , () =>{
-    console.log(inputBuscador.value );
-    const peliculasfiltradas = filtrarPorNombre(peliculas , inputBuscador.value)
-    console.log(peliculasfiltradas);
-    creartarjetas(peliculasfiltradas, div)
-})
+
+let movies = []
+fetch('https://moviestack.onrender.com/api/movies',
+{
+    headers:{
+        "X-API-Key" : "0ff70d54-dc0b-4262-9c3d-776cb0f34dbd"
+       }
+    })
+    .then(res => res.json())
+    .then(data => {
+        movies = data.movies
+        creartarjetas(movies, contenedorDiv)
+        
+        
+        //Filtros de input
+       inputBuscador.addEventListener( "input" , () =>{
+           const peliculaFiltradaPorGenero = filtrarPorGenero(movies, contenedor.value)
+           const peliculasfiltradas = filtrarPorNombre(peliculaFiltradaPorGenero , inputBuscador.value)
+           creartarjetas(peliculasfiltradas, contenedorDiv)
+       })
+       
+       //generos 
+       function generoSinRepetir(peli) {
+           let listagenero = peli.map(pelicula => pelicula.genres).flat()
+           let sinRep = new Set(listagenero)
+           let resultadogenero = Array.from(sinRep)
+           return resultadogenero.toSorted()
+       }
+       
+       //filtro de genero
+       
+           contenedor.addEventListener('change', () =>{
+               const crearFiltroPorNombre = filtrarPorNombre(movies, inputBuscador.value)
+              const peliculasfiltrada = filtrarPorGenero(crearFiltroPorNombre, contenedor.value)
+              creartarjetas(peliculasfiltrada, contenedorDiv)
+           }) 
+       
+       let generos2 = generoSinRepetir(movies)
+
+       crearOptions(generos2, contenedor)
+
+       filtrarPorGenero(movies, contenedor.value)
+       
+       filtrarPorNombre(peliculaFiltradaPorGenero, inputBuscador.value)
+       
+       //boton favorito
+       
+
+    
+
+           
+    
+        
+    })
+    .catch(err => console.log(err))
+
+    fetch('https://moviestack.onrender.com/api/movies',
+{
+    headers:{
+        "X-API-Key" : "0ff70d54-dc0b-4262-9c3d-776cb0f34dbd"
+       }
+    })
+    .then(res => res.json())
+    .then(data => {
+        movies = data.movies
+        creartarjetas(movies, contenedorDiv)
 
 
-function filtrarPorNombre( listapeliculas , nombreingresado){
-   return listapeliculas.filter( pelicula => pelicula.title.toLowerCase().includes(nombreingresado.toLowerCase()) )
-}
+        let arrayPeliculasFavs = [] 
+
+        let lSArray = JSON.parse(localStorage.getItem('listapelis'))
+
+        if (lSArray) {
+            arrayPeliculasFavs = lSArray
+        }
+
+        contenedorDiv.addEventListener('click' , (event) => {
+            let dataSetId = event.target.dataset.movies
+        if (dataSetId) {
+            
+            if (!arrayPeliculasFavs.includes(dataSetId)){
+            arrayPeliculasFavs.push(dataSetId)
+            } else{
+                arrayPeliculasFavs = arrayPeliculasFavs.filter(id => id != dataSetId)
+            }
+            localStorage.setItem('listapelis' , JSON.stringify(arrayPeliculasFavs))
+        }
+    })
 
 
-function generoSinRepetir(peli) {
-    let listagenero = peli.map(pelicula => pelicula.genres).flat()
-    let sinRep = new Set(listagenero)
-    return [...sinRep]
-}
-
-console.log(generoSinRepetir(peliculas));
-
-
-function crearOptions(gen, elemento) {
-    let gener = ""
-    for (const iteradorgen of gen) {
-        gener += `<option value="${iteradorgen}"> ${iteradorgen} </option> `
-    }
-    elemento.innerHTML += gener
-}
-
-
-let generos = generoSinRepetir(peliculas)
-
-crearOptions(generos , contenedor)
-
-
-/* function filtrarPorGenero(listapeliculas) {
-       let seleccionados = Array.from(document.querySelectorAll('option'))
-       .map( option => option.value)
-       let peliculasFiltrados = listapeliculas.filter(pelicula => seleccionados)
-       console.log(peliculasFiltrados);
-    } */
+    })
